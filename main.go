@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 type Note struct {
@@ -42,5 +43,18 @@ func handleNotes(writer http.ResponseWriter, request *http.Request) {
 }
 
 func handleNotesById(writer http.ResponseWriter, request *http.Request) {
-
+	stringId := request.URL.Path[len("/notes/"):]
+	id, err := strconv.Atoi(stringId)
+	if err != nil {
+		fmt.Fprintln(writer, "Invalid Id")
+		return
+	}
+	for _, note := range notes {
+		if note.Id == id {
+			fmt.Fprintf(writer, "%d - %s\n", note.Id, note.Text)
+			return
+		}
+	}
+	writer.WriteHeader(http.StatusNotFound)
+	fmt.Fprintln(writer, "Note not found")
 }
