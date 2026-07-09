@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -25,8 +26,18 @@ func handleNotes(writer http.ResponseWriter, request *http.Request) {
 	switch request.Method {
 	case "GET":
 		for _, value := range notes {
-			fmt.Fprintf(writer, "%d - %s", value.Id, value.Text)
+			fmt.Fprintf(writer, "%d - %s\n", value.Id, value.Text)
 		}
+	case "POST":
+		body, err := io.ReadAll(request.Body)
+		if err != nil {
+			fmt.Fprint(writer, "Not able to read the body")
+			return
+		}
+		newNote := Note{Id: len(notes) + 1, Text: string(body)}
+		notes = append(notes, newNote)
+		fmt.Fprintf(writer, "Created note N-%d\n", newNote.Id)
+
 	}
 }
 
